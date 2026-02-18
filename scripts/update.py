@@ -11,6 +11,8 @@ GITHUB_RAW_SOURCES = [
 ]
 
 SUBSCRIPTION_SOURCES = [
+    # From https://v2rayse.com/en/free-node (Surge dynamic link)
+    'https://tt.vg/yUlGe',
     # From https://github.com/Helpsoftware/fanqiang
     'https://www.liesauer.net/yogurt/subscribe?ACCESS_TOKEN=DAYxR3mMaZAsaqUb',
     'https://nodes.fanqiang.network/pubconfig/wei6krXcNqyho1b8',

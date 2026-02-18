@@ -24,7 +24,11 @@ https://t.me/xrayfree
 https://github.com/zipvpn/FreeVPNNodes
 https://github.com/Helpsoftware/fanqiang
 
-# Subscription sources (from Helpsoftware/fanqiang)
+# Subscription sources
+# V2RaySE dynamic link (Surge)
+https://tt.vg/yUlGe
+
+# From Helpsoftware/fanqiang
 https://www.liesauer.net/yogurt/subscribe?ACCESS_TOKEN=DAYxR3mMaZAsaqUb
 https://nodes.fanqiang.network/pubconfig/wei6krXcNqyho1b8
 https://www.xrayvip.com/free.txt
