@@ -175,25 +175,26 @@ def test_node(n, port_base=10800):
                 break
             except Exception:
                 port += 1
-    inbound = {'type':'socks','listen':'127.0.0.1','listen_port':port,'udp':False}
+    inbound = {'type':'socks','listen':'127.0.0.1','listen_port':port}
     if n['type']=='ss':
         outbound = {
             'type':'shadowsocks',
+            'tag': 'proxy',
             'server': n['server'],
             'server_port': n['port'],
             'method': n['method'],
-            'password': n['password'],
-            'udp': False
+            'password': n['password']
         }
     else:
         outbound = {
             'type':'trojan',
+            'tag': 'proxy',
             'server': n['server'],
             'server_port': n['port'],
             'password': n['password'],
             'tls': {'enabled': True, 'server_name': n.get('sni') or n['server']}
         }
-    config = {'inbounds':[inbound], 'outbounds':[outbound, {'type':'direct','tag':'direct'}], 'route': {'final':'default'}}
+    config = {'inbounds':[inbound], 'outbounds':[outbound, {'type':'direct','tag':'direct'}], 'route': {'final':'proxy'}}
     cfg_path = '/tmp/singbox_test.json'
     open(cfg_path,'w').write(json.dumps(config))
     p = subprocess.Popen([SING_BOX, 'run', '-c', cfg_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
