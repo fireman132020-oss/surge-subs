@@ -10,6 +10,28 @@ GITHUB_RAW_SOURCES = [
     'https://raw.githubusercontent.com/zipvpn/FreeVPNNodes/refs/heads/main/free_surge_nodes.conf',
 ]
 
+SUBSCRIPTION_SOURCES = [
+    # From https://github.com/Helpsoftware/fanqiang
+    'https://www.liesauer.net/yogurt/subscribe?ACCESS_TOKEN=DAYxR3mMaZAsaqUb',
+    'https://nodes.fanqiang.network/pubconfig/wei6krXcNqyho1b8',
+    'https://www.xrayvip.com/free.txt',
+    'https://github.com/StormragerCN/v2ray/raw/refs/heads/main/v2ray',
+    'https://github.com/ermaozi/get_subscribe/raw/refs/heads/main/subscribe/v2ray.txt',
+    'https://raw.githubusercontent.com/free18/v2ray/refs/heads/main/c.yaml',
+    'https://github.com/aiboboxx/clashfree/raw/refs/heads/main/clash.yml',
+    'https://gcore.jsdelivr.net/gh/aiboboxx/clashfree@refs/heads/main/clash.yml',
+    'https://cdn.jsdelivr.net/gh/vxiaov/free_proxies@main/clash/clash.provider.yaml',
+    'https://raw.githubusercontent.com/vxiaov/free_proxies/main/clash/clash.provider.yaml',
+    'https://github.com/ermaozi/get_subscribe/raw/refs/heads/main/subscribe/clash.yml',
+    'https://github.com/anaer/Sub/raw/refs/heads/main/clash.yaml',
+    'https://www.xrayvip.com/free.yaml',
+    'https://raw.githubusercontent.com/free18/v2ray/refs/heads/main/v.txt',
+    'https://proxy.v2gh.com/https://raw.githubusercontent.com/Pawdroid/Free-servers/main/sub',
+    'https://mirror.v2gh.com/https://raw.githubusercontent.com/Pawdroid/Free-servers/main/sub',
+    'https://hyt-allen-xu.netlify.app',
+    'https://github.com/Jsnzkpg/Jsnzkpg/raw/refs/heads/Jsnzkpg/Jsnzkpg',
+]
+
 MAX_NODES = 50
 TEST_URL = 'https://www.gstatic.com/generate_204'
 SING_BOX = os.environ.get('SING_BOX', 'sing-box')
@@ -151,6 +173,26 @@ def extract_nodes():
         try:
             text = fetch(url)
             nodes.extend(extract_from_surge_conf(text))
+        except Exception:
+            continue
+    # Subscription sources (scan for ss:// and trojan://)
+    for url in SUBSCRIPTION_SOURCES:
+        try:
+            text = fetch(url, timeout=20)
+            ss_links = re.findall(r'ss://[^\s"<>()]+', text)
+            tr_links = re.findall(r'trojan://[^\s"<>()]+', text)
+            for link in ss_links:
+                try:
+                    nodes.append(decode_ss(link))
+                except Exception:
+                    pass
+            for link in tr_links:
+                try:
+                    t = decode_trojan(link)
+                    if t:
+                        nodes.append(t)
+                except Exception:
+                    pass
         except Exception:
             continue
     # de-dup by server:port+type+password
