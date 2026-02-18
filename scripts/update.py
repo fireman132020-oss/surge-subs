@@ -177,10 +177,12 @@ def extract_nodes():
             nodes.extend(extract_from_surge_conf(text))
         except Exception:
             continue
-    # Subscription sources (scan for ss:// and trojan://)
+    # Subscription sources (scan for ss:// and trojan://, or Surge config)
     for url in SUBSCRIPTION_SOURCES:
         try:
             text = fetch(url, timeout=20)
+            if '[Proxy]' in text:
+                nodes.extend(extract_from_surge_conf(text))
             ss_links = re.findall(r'ss://[^\s"<>()]+', text)
             tr_links = re.findall(r'trojan://[^\s"<>()]+', text)
             for link in ss_links:
