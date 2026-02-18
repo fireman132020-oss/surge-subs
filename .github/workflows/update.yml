@@ -1,0 +1,48 @@
+name: Update surge subscriptions
+
+on:
+  schedule:
+    # 00:00 Asia/Shanghai == 16:00 UTC (previous day)
+    - cron: '0 16 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install sing-box
+        run: |
+          set -e
+          VER=1.12.22
+          ARCH=linux-amd64
+          URL="https://github.com/SagerNet/sing-box/releases/download/v${VER}/sing-box-${VER}-${ARCH}.tar.gz"
+          curl -L "$URL" -o /tmp/sing-box.tgz
+          tar -xzf /tmp/sing-box.tgz -C /tmp
+          sudo mv /tmp/sing-box-${VER}-${ARCH}/sing-box /usr/local/bin/sing-box
+          sing-box version
+
+      - name: Run update
+        run: |
+          python scripts/update.py
+
+      - name: Commit and push
+        run: |
+          git status --porcelain
+          if git diff --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add surge_from_links.conf summary.json
+          git commit -m "Update surge subscription"
+          git push
