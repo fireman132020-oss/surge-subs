@@ -178,6 +178,37 @@ def decode_trojan(link):
     return {'type':'trojan','password':password,'server':host,'port':int(port),'sni':sni,'tag':tag}
 
 
+def decode_vmess(link):
+    # vmess://base64json
+    if not link.startswith('vmess://'):
+        return None
+    body = link[len('vmess://'):]
+    try:
+        raw = base64.b64decode(body + '===', validate=False).decode('utf-8', errors='ignore')
+        data = json.loads(raw)
+    except Exception:
+        return None
+    try:
+        server = data.get('add')
+        port = int(data.get('port'))
+        uuid = data.get('id')
+    except Exception:
+        return None
+    if not (server and port and uuid):
+        return None
+    tag = data.get('ps') or ''
+    tls = data.get('tls') in ('tls','1',1,True)
+    sni = data.get('sni') or data.get('host') or server
+    ws = (data.get('net') == 'ws')
+    ws_path = data.get('path') or '/'
+    ws_host = data.get('host') or ''
+    return {
+        'type':'vmess','server':server,'port':port,'uuid':uuid,
+        'tls':tls,'sni':sni,'ws':ws,'ws_path':ws_path,'ws_host':ws_host,
+        'tag':tag
+    }
+
+
 def extract_nodes():
     nodes = []
     # TG
@@ -189,6 +220,10 @@ def extract_nodes():
                 t = decode_trojan(link)
                 if t:
                     nodes.append(t)
+            elif link.startswith('vmess://'):
+                v = decode_vmess(link)
+                if v:
+                    nodes.append(v)
         except Exception:
             continue
     # GitHub raw surge conf
@@ -207,6 +242,7 @@ def extract_nodes():
                 nodes.extend(extract_from_surge_conf(text))
             ss_links = re.findall(r'ss://[^\s"<>()]+', text)
             tr_links = re.findall(r'trojan://[^\s"<>()]+', text)
+            vm_links = re.findall(r'vmess://[^\s"<>()]+', text)
             for link in ss_links:
                 try:
                     nodes.append(decode_ss(link))
@@ -217,6 +253,13 @@ def extract_nodes():
                     t = decode_trojan(link)
                     if t:
                         nodes.append(t)
+                except Exception:
+                    pass
+            for link in vm_links:
+                try:
+                    v = decode_vmess(link)
+                    if v:
+                        nodes.append(v)
                 except Exception:
                     pass
         except Exception:
@@ -253,7 +296,7 @@ def test_node(n, port_base=10800):
             'method': n['method'],
             'password': n['password']
         }
-    else:
+    elif n['type']=='trojan':
         outbound = {
             'type':'trojan',
             'tag': 'proxy',
@@ -262,6 +305,19 @@ def test_node(n, port_base=10800):
             'password': n['password'],
             'tls': {'enabled': True, 'server_name': n.get('sni') or n['server']}
         }
+    else:
+        outbound = {
+            'type':'vmess',
+            'tag': 'proxy',
+            'server': n['server'],
+            'server_port': n['port'],
+            'uuid': n['uuid'],
+            'security': 'auto',
+            'tls': {'enabled': bool(n.get('tls')), 'server_name': n.get('sni') or n['server']},
+            'transport': {'type': 'ws', 'path': n.get('ws_path') or '/', 'headers': {'Host': n.get('ws_host') or n['server']}} if n.get('ws') else None,
+        }
+        if outbound.get('transport') is None:
+            outbound.pop('transport', None)
     config = {'inbounds':[inbound], 'outbounds':[outbound, {'type':'direct','tag':'direct'}], 'route': {'final':'proxy'}}
     cfg_path = '/tmp/singbox_test.json'
     open(cfg_path,'w').write(json.dumps(config))
@@ -298,16 +354,26 @@ def main():
     lines = ['[Proxy]']
     ss_i = 1
     tj_i = 1
+    vm_i = 1
     for n in ok_nodes:
         if n['type']=='ss':
             name = f"SS-{ss_i:02d}"
             ss_i += 1
             line = f"{name} = ss, {n['server']}, {n['port']}, encrypt-method={n['method']}, password={n['password']}, udp=false"
-        else:
+        elif n['type']=='trojan':
             name = f"TJ-{tj_i:02d}"
             tj_i += 1
             sni = n.get('sni') or n['server']
             line = f"{name} = trojan, {n['server']}, {n['port']}, password={n['password']}, sni={sni}, skip-cert-verify=false, udp=false"
+        else:
+            name = f"VM-{vm_i:02d}"
+            vm_i += 1
+            tls = 'true' if n.get('tls') else 'false'
+            ws = 'true' if n.get('ws') else 'false'
+            ws_path = n.get('ws_path') or '/'
+            ws_host = n.get('ws_host') or n['server']
+            sni = n.get('sni') or n['server']
+            line = f"{name} = vmess, {n['server']}, {n['port']}, username={n['uuid']}, tls={tls}, vmess-aead=true, ws={ws}, ws-path={ws_path}, sni={sni}, ws-headers=Host:{ws_host}, skip-cert-verify=false, udp=false"
         lines.append(line)
 
     out_path = os.path.join(os.getcwd(), 'surge_from_links.conf')
