@@ -32,6 +32,14 @@ SUBSCRIPTION_SOURCES = [
     'https://mirror.v2gh.com/https://raw.githubusercontent.com/Pawdroid/Free-servers/main/sub',
     'https://hyt-allen-xu.netlify.app',
     'https://github.com/Jsnzkpg/Jsnzkpg/raw/refs/heads/Jsnzkpg/Jsnzkpg',
+    # Additional sources
+    'https://raw.githubusercontent.com/ssrsub/ssr/master/Surge.conf',
+    'https://raw.githubusercontent.com/Pawdroid/Free-servers/main/sub',
+    'https://www.freeclashnode.com/node-real-time-update/',
+    'https://raw.githubusercontent.com/freenodes/freenodes/master/README.md',
+    # v2rayse API (best effort)
+    'https://v2rayse.com/api/node-share',
+    'https://v2rayse.com/api/tools/free-node',
 ]
 
 MAX_NODES = 50
@@ -41,6 +49,19 @@ SING_BOX = os.environ.get('SING_BOX', 'sing-box')
 
 def fetch(url, timeout=15):
     return urllib.request.urlopen(url, timeout=timeout).read().decode('utf-8', errors='ignore')
+
+
+def maybe_b64_decode(text: str) -> str:
+    t = text.strip()
+    if len(t) < 50:
+        return text
+    try:
+        decoded = base64.b64decode(t + '===', validate=False).decode('utf-8', errors='ignore')
+        if 'ss://' in decoded or 'trojan://' in decoded:
+            return decoded
+    except Exception:
+        pass
+    return text
 
 
 def extract_links_from_tg():
@@ -181,6 +202,7 @@ def extract_nodes():
     for url in SUBSCRIPTION_SOURCES:
         try:
             text = fetch(url, timeout=20)
+            text = maybe_b64_decode(text)
             if '[Proxy]' in text:
                 nodes.extend(extract_from_surge_conf(text))
             ss_links = re.findall(r'ss://[^\s"<>()]+', text)
