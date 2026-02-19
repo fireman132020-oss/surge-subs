@@ -3,7 +3,7 @@ import re, base64, urllib.parse, json, time, subprocess, socket, os
 import urllib.request
 
 TG_CHANNELS = [
-    'https://t.me/byxiaoxi','https://t.me/ssList','https://t.me/V2List','https://t.me/youneedproxy','https://t.me/s/v2raydailyupdate','https://t.me/vvkj11','https://t.me/v2ray3','https://t.me/shadowrocket_android','https://t.me/freenodedaily','https://t.me/SSRSUB','https://t.me/ShadowsocksRssr','https://t.me/ssrList','https://t.me/freeshadowsock','https://t.me/socks5list','https://t.me/ssrshares','https://t.me/onessr','https://t.me/baipiaojiedian','https://t.me/ShareCentre','https://t.me/share_proxy_001','https://t.me/xrayfree'
+    'https://t.me/byxiaoxi','https://t.me/ssList','https://t.me/V2List','https://t.me/youneedproxy','https://t.me/s/v2raydailyupdate','https://t.me/vvkj11','https://t.me/v2ray3','https://t.me/shadowrocket_android','https://t.me/freenodedaily','https://t.me/SSRSUB','https://t.me/ShadowsocksRssr','https://t.me/ssrList','https://t.me/freeshadowsock','https://t.me/socks5list','https://t.me/ssrshares','https://t.me/onessr','https://t.me/baipiaojiedian','https://t.me/ShareCentre','https://t.me/share_proxy_001','https://t.me/xrayfree','https://t.me/jiedian168'
 ]
 
 GITHUB_RAW_SOURCES = [
