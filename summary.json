@@ -1,5 +1,5 @@
 {
-  "total_nodes_tested": 150,
-  "ok_nodes": 15,
+  "total_nodes_tested": 87,
+  "ok_nodes": 3,
   "generated": "/home/runner/work/surge-subs/surge-subs/surge_from_links.conf"
 }
